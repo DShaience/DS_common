@@ -63,3 +63,23 @@ def plot_confusion_matrix(cm: np.array, label_names: List[str], title: str='Conf
     plt.ylabel('True label', fontsize=fontsz + 2)
     plt.xlabel('Predicted label', fontsize=fontsz + 2)
 
+
+def plotKDE_1d(ds: pd.Series, title: str, fontsz: int = 14):
+    '''
+    :param ds: data series
+    :param fontsz:
+    :return: plots kdeplot for  one series
+    '''
+    plt.figure()
+    plt.xticks(fontsize=fontsz)
+    plt.yticks(fontsize=fontsz)
+    plt.title(title, fontsize=fontsz)
+    x = ds.dropna()
+    sns.kdeplot(x, shade=True, label=title, cut=0)
+    plt.legend(fontsize=fontsz)
+    plt.show()
+
+
+def scatterPlot2d(df: pd.DataFrame, featureName1: str, featureName2: str):
+    ax = sns.scatterplot(x=featureName1, y=featureName2, data=df)
+    plt.show()
