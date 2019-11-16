@@ -1,4 +1,6 @@
+import datetime
 import json
+import time
 
 
 def sort_list(list1, list2) -> list:
@@ -31,4 +33,17 @@ def loadJSONFromFileToDict(jsonPath: str) -> dict:
     jsonAsDict = json.loads(json1AsStr)
 
     return jsonAsDict
+
+
+def generateshortDateTimeStamp(ts: float = None) -> str:
+    '''
+    :param ts: float, but expects timestamp time.time(). If none, generate timestamp of execution
+    :return:
+    '''
+    if ts is None:
+        ts = int(time.time())
+    # shortDateTimeStamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d') + '__' + str(ts)
+    shortDateTimeStamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d___%H-%M-%S')
+    return shortDateTimeStamp
+
 
