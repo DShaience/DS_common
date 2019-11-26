@@ -1,3 +1,4 @@
+import bz2
 import datetime
 import json
 import time
@@ -47,3 +48,8 @@ def generateshortDateTimeStamp(ts: float = None) -> str:
     return shortDateTimeStamp
 
 
+def compressFileToBz2(fnmaeIn: srt, fnameOut: str, compressionLevel: int=9):
+    tarbz2contents = bz2.compress(open(fnmaeIn, 'rb').read(), compressionLevel)
+    fh = open(fnameOut, "wb")
+    fh.write(tarbz2contents)
+    fh.close()
