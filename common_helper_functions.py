@@ -1,7 +1,10 @@
+import atexit
 import bz2
 import datetime
 import json
 import time
+import yappi
+import atexit
 
 
 def sort_list(list1, list2) -> list:
@@ -43,7 +46,6 @@ def generateshortDateTimeStamp(ts: float = None) -> str:
     '''
     if ts is None:
         ts = int(time.time())
-    # shortDateTimeStamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d') + '__' + str(ts)
     shortDateTimeStamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d___%H-%M-%S')
     return shortDateTimeStamp
 
@@ -54,3 +56,48 @@ def compressFileToBz2(fnmaeIn: str, fnameOut: str, compressionLevel: int=9):
     fh.write(tarbz2contents)
     fh.close()
 
+
+def init_yappi(yappiPath: str, verbose: bool = True):
+    '''
+    :param yappiPath: where to save yappi's results
+    :param verbose: print to console
+    :return:
+    '''
+    OUT_FILE = yappiPath
+    if verbose:
+        print('[YAPPI START]')
+    yappi.set_clock_type('wall')
+    yappi.start()
+
+    @atexit.register
+    def finish_yappi():
+        if verbose:
+            print('[YAPPI STOP]')
+        yappi.stop()
+
+        if verbose:
+            print('[YAPPI WRITE]')
+
+        stats = yappi.get_func_stats()
+
+        for stat_type in ['pstat', 'callgrind', 'ystat']:  # pstat can be read using snakeviz
+            print('writing {}.{}'.format(OUT_FILE, stat_type))
+            stats.save('{}.{}'.format(OUT_FILE, stat_type), type=stat_type)
+
+        if verbose:
+            print('\n[YAPPI FUNC_STATS]')
+
+        print('writing {}.func_stats'.format(OUT_FILE))
+        with open('{}.func_stats'.format(OUT_FILE), 'w') as fh:
+            stats.print_all(out=fh)
+
+        if verbose:
+            print('\n[YAPPI THREAD_STATS]')
+
+        print('writing {}.thread_stats'.format(OUT_FILE))
+        tstats = yappi.get_thread_stats()
+        with open('{}.thread_stats'.format(OUT_FILE), 'w') as fh:
+            tstats.print_all(out=fh)
+
+        if verbose:
+            print('[YAPPI OUT]')
