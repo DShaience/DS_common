@@ -244,3 +244,25 @@ def dummify_variables(df):
     print("Number of columns after dummy-variables:\t%s" % (len(cols)))
     return df
 
+
+def stripRN(unicodeTxt: str):
+    '''
+    :param unicodeTxt: a unicode string
+    :return: the same string, without special characters, such as \n \r, etc.
+    '''
+
+    newStr = unicodeTxt.replace(u'\n', '')
+    newStr = newStr.replace(u'\r', '')
+
+    return newStr
+
+
+def sanitizeText(txt: str) -> str:
+    '''
+    :param txt: any text
+    :return: offers basic text sanitization against special characters and strips trailing/heading whitespace
+    '''
+    removeSpecialChars = txt.translate({ord(c): "" for c in "!@#$%^&*()[]{};:,./<>?\|`~-=_+'\""})
+    removeSpecialChars = removeSpecialChars.replace('rlm', '')
+    removeSpecialChars = removeSpecialChars.strip()
+    return removeSpecialChars
