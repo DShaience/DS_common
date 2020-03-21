@@ -1,5 +1,4 @@
 import itertools
-
 from typing import List, Tuple
 import numpy as np
 import pandas as pd
@@ -8,13 +7,20 @@ from matplotlib import pyplot as plt
 
 
 def correlationMatrix(df: pd.DataFrame, fontsz: int = 16, toShow: bool = True):
+    """
+    :param df: input dataframe. Correlation matrix calculated for all columns
+    :param fontsz: font size
+    :param toShow: True - plots the figure
+    :return:
+    """
     # Correlation between numeric variables
     cols_numeric = list(df)
     data_numeric = df[cols_numeric].copy(deep=True)
     corr_mat = data_numeric.corr(method='pearson')
-    cbar_ticks =np.linspace(-1,1,11)
+    cbar_ticks = [round(num, 1) for num in np.linspace(-1, 1, 11, dtype=np.float)]  # rounding corrects for floating point imprecision
+
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
-    plt.figure(figsize=[8,8])
+    plt.figure(figsize=[8, 8])
     plt.xticks(fontsize=fontsz)
     plt.yticks(fontsize=fontsz)
     ax = sns.heatmap(corr_mat, cmap=cmap, vmin=-1, vmax=1, square=True, linewidths=.5, cbar_kws={"shrink": .5})

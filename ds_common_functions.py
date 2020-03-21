@@ -262,7 +262,10 @@ def sanitizeText(txt: str) -> str:
     :param txt: any text
     :return: offers basic text sanitization against special characters and strips trailing/heading whitespace
     '''
+    if (txt is None) or (txt is np.nan) or (txt == ""):
+        return txt
     removeSpecialChars = txt.translate({ord(c): "" for c in "!@#$%^&*()[]{};:,./<>?\|`~-=_+'\""})
     removeSpecialChars = removeSpecialChars.replace('rlm', '')
     removeSpecialChars = removeSpecialChars.strip()
     return removeSpecialChars
+
