@@ -102,22 +102,90 @@ def plotConfusionMatrix(cm: np.array, label_names: List[str], title: str='Confus
     plt.xlabel('Predicted label', fontsize=fontsz + 2)
 
 
-def plotKDE_1d(ds: pd.Series, title: str, fontsz: int = 14):
-    '''
-    :param ds: data series
-    :param fontsz:
-    :return: plots kdeplot for  one series
-    '''
-    plt.figure()
-    plt.xticks(fontsize=fontsz)
-    plt.yticks(fontsize=fontsz)
-    plt.title(title, fontsize=fontsz)
-    x = ds.dropna()
-    sns.kdeplot(x, shade=True, label=title, cut=0)
-    plt.legend(fontsize=fontsz)
+def plotFeaturesCoefficients(featuresCoeffsDf: pd.DataFrame, fontSize: int=10):
+    """
+    :param featuresCoeffsDf: dataframe of features and their coefficients
+    :param fontSize:
+    :return:
+    """
+    featuresCoeffs = featuresCoeffsDf.apply(pd.to_numeric)
+    featuresCoeffs.reset_index(drop=True, inplace=True)
+    featuresCoeffs = featuresCoeffs.transpose()
+    asArray = np.array(featuresCoeffs)
+    minVal = np.min(asArray)
+    maxVal = np.max(asArray)
+    fromVal = round(minVal - 0.005, 2)
+    toVal = round(maxVal + 0.005, 2)
+    cbar_ticks = np.linspace(fromVal, toVal, 11, dtype=np.float16)
+    cmap = sns.diverging_palette(220, 10, as_cmap=True)
+    plt.figure(figsize=[12, 12])
+    plt.xticks(fontsize=fontSize)
+    plt.yticks(fontsize=fontSize)
+    ax = sns.heatmap(featuresCoeffs, cmap=cmap, vmin=-1, vmax=1, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5})
+    cbar = ax.collections[0].colorbar
+    cbar.set_ticks(cbar_ticks)
+    cbar.set_ticklabels(cbar_ticks)
     plt.show()
 
 
-def scatterPlot2d(df: pd.DataFrame, featureName1: str, featureName2: str):
-    ax = sns.scatterplot(x=featureName1, y=featureName2, data=df)
+def calcShowTwoDfHistCDF(df1: pd.DataFrame, df2: pd.DataFrame, df1Label: str, df2Label: str, featureCol: str, density: bool = True):
+    fontsz = 14
+    df1Color = '#33CC33'  # green
+    df2Color = '#bc0033'  # red
+    alpha = 0.5
+
+    featureData1 = df1.loc[~df1[featureCol].isna(), featureCol]
+    featureData2 = df2.loc[~df2[featureCol].isna(), featureCol]
+    if len(featureData1) == 0 or len(featureData2) == 0:
+        print("One of the dataframes is empty. Lengths:\t%s, %s" % (len(featureData1), len(featureData2)))
+        return
+
+    bins = 100
+    f = plt.figure(figsize=(12, 8))
+    ax = f.add_subplot(121)
+    ax2 = f.add_subplot(122)
+    ax.xaxis.set_tick_params(labelsize=fontsz)
+    ax.yaxis.set_tick_params(labelsize=fontsz)
+
+    try:
+        D, p_value = ks_2samp(featureData1, featureData2)
+    except Exception as e:
+        print("ERROR: Exception while trying to calculate Kolmogorov Smirnov test over the two samples. Aborting with exception")
+        raise ValueError(e)
+
+    ax.set_title(featureCol + " (normalized)", fontsize=fontsz)
+    counts_df1, bin_edges_df1, _ = ax.hist(featureData1, bins=bins, density=density, color=df1Color, alpha=alpha, label=df1Label)
+    counts_df2, bin_edges_df2, _ = ax.hist(featureData2, bins=bins, density=density, color=df2Color, alpha=alpha, label=df2Label)
+    ax.plot([], [], ' ', label="\nKS D: " + str(round(D, 4)))
+
+    ax.legend(fontsize=fontsz)
+
+    samples = featureData1
+    xmax, xmin = max(samples), min(samples)
+    positions = np.linspace(xmin, xmax, 1000)
+    gaussian_kernel = gaussian_kde(samples)
+    values = gaussian_kernel.evaluate(positions)
+    ax.plot(positions, values, 'b')
+
+    samples = featureData2
+    xmax, xmin = max(samples), min(samples)
+    positions = np.linspace(xmin, xmax, 1000)
+    gaussian_kernel = gaussian_kde(samples)
+    values = gaussian_kernel.evaluate(positions)
+    ax.plot(positions, values, 'k')
+
+    ax2.xaxis.set_tick_params(labelsize=fontsz)
+    ax2.yaxis.set_tick_params(labelsize=fontsz)
+    ax2.set_title(featureCol + " CDF ", fontsize=fontsz)
+    cdf1 = np.cumsum(counts_df1)
+    cdf2 = np.cumsum(counts_df2)
+
+    ax2.plot(bin_edges_df1[1:], cdf1 / cdf1[-1], label=df1Label, color=df1Color)
+    ax2.plot(bin_edges_df2[1:], cdf2 / cdf2[-1], label=df2Label, color=df2Color)
+    ax2.plot([], [], ' ', label="\nKS D: " + str(round(D, 4)))
+    ax2.legend(fontsize=fontsz)
+
+    print("Feature: %s\t K-S D: %s" % (featureCol, str(round(D, 4))))
     plt.show()
+
+

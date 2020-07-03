@@ -9,3 +9,4 @@ def normalize_path(path: str):
     norm_path = path.replace('\\', '/')
     norm_path = '/'.join(re.split('/', norm_path, maxsplit=0, flags=0)) + '/'
     return norm_path
+

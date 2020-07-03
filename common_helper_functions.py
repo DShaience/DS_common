@@ -1,4 +1,3 @@
-import atexit
 import bz2
 import datetime
 import json

@@ -1,8 +1,29 @@
+import sys
+import warnings
 import numpy as np
 import pandas as pd
 
 
-def feature_rescaling_minmax(df, col_name):
+def create_transition_df(s1: pd.Series) -> pd.DataFrame:
+    """
+    :param s1: gets a pandas series with values
+    :return: returns a dataframe containing counts of the transitions between values
+    i.e., A->B, B->C, etc.
+    """
+    s = s1.copy(deep=True).reset_index(drop=True)
+    diffs = s.diff()[s.diff() != 0].index.values
+    diffs = diffs[1:]
+
+    # return empty dataframe if there are no transitions
+    if len(diffs) == 0:
+        return pd.DataFrame()
+    df_transitions = pd.DataFrame()
+    df_transitions['from'] = s[diffs - 1].values
+    df_transitions['to'] = s[diffs].values
+    return df_transitions
+
+
+def feature_rescaling_minmax(df: pd.DataFrame, col_name: str):
     # Function applies minmax scaling: x' = (x-min(x))/(max(x)-mix(x))
     # input: data-frame, and target column to rescale (assumes column is numeric)
     # returns: scaled column, cast to float
@@ -10,7 +31,7 @@ def feature_rescaling_minmax(df, col_name):
     return x
 
 
-def feature_standardization(df, col_name):
+def feature_standardization(df: pd.DataFrame, col_name: str):
     # Function applies minmax scaling: x' = (x-min(x))/(max(x)-mix(x))
     # input: data-frame, and target column to rescale (assumes column is numeric)
     # returns: standardized column, cast to float
